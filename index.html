@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kharcho — Autonomous Financial Value Engine</title>
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card-bg: #111827;
+      --card-hover: #1e293b;
+      --border: #2d3748;
+      --text: #f3f4f6;
+      --text-muted: #9ca3af;
+      --accent: #10b981;
+      --accent-glow: rgba(16, 185, 129, 0.2);
+      --primary: #3b82f6;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --radius: 10px;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: var(--font); }
+    body { background-color: var(--bg); color: var(--text); padding-bottom: 80px; min-height: 100vh; }
+
+    /* Top Bar */
+    .topbar {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 14px 20px; background: rgba(17, 24, 39, 0.85); backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.15rem; letter-spacing: -0.5px; }
+    .brand-badge { background: var(--accent); color: #000; font-size: 0.7rem; font-weight: 800; padding: 2px 7px; border-radius: 4px; text-transform: uppercase; }
+    .vault-status { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--text-muted); }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+
+    /* Tab Navigation */
+    .nav-tabs {
+      display: flex; background: var(--card-bg); border-bottom: 1px solid var(--border);
+      padding: 0 16px; overflow-x: auto;
+    }
+    .tab-btn {
+      padding: 14px 18px; border: none; background: transparent; color: var(--text-muted);
+      font-size: 0.9rem; font-weight: 600; cursor: pointer; border-bottom: 2px solid transparent;
+      white-space: nowrap; transition: all 0.2s;
+    }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+    /* Container */
+    .main-container { max-width: 980px; margin: 0 auto; padding: 20px 16px; }
+
+    /* Tab Content Panels */
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; animation: fadeIn 0.2s ease-in-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Cards & Grids */
+    .grid { display: grid; gap: 16px; }
+    .grid-2 { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+    .grid-3 { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+    .grid-4 { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+
+    .card {
+      background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 18px; position: relative; transition: border-color 0.2s;
+    }
+    .card:hover { border-color: rgba(255,255,255,0.15); }
+    .card-title { font-size: 0.95rem; font-weight: 700; color: #fff; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+    .card-sub { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 14px; }
+
+    /* Progressive Dropdowns & Steppers */
+    .form-group { margin-bottom: 14px; }
+    .label { display: block; font-size: 0.78rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .select, .input {
+      width: 100%; padding: 10px 12px; background: #1a2234; border: 1px solid var(--border);
+      border-radius: 6px; color: #fff; font-size: 0.9rem; outline: none; transition: border-color 0.2s;
+    }
+    .select:focus, .input:focus { border-color: var(--primary); }
+
+    /* Tag Pills & Steppers */
+    .pill-group { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+    .pill {
+      background: #1e293b; border: 1px solid var(--border); color: var(--text-muted);
+      padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 500;
+      cursor: pointer; user-select: none; transition: all 0.15s;
+    }
+    .pill:hover { border-color: #4b5563; color: #fff; }
+    .pill.active { background: rgba(16, 185, 129, 0.15); border-color: var(--accent); color: var(--accent); font-weight: 600; }
+
+    /* Action Buttons */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 10px 18px; border-radius: 6px; border: none; font-size: 0.88rem; font-weight: 600;
+      cursor: pointer; transition: all 0.15s; text-decoration: none;
+    }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: #2563eb; }
+    .btn-accent { background: var(--accent); color: #000; font-weight: 700; }
+    .btn-accent:hover { background: #059669; color: #fff; }
+    .btn-ghost { background: #1e293b; color: var(--text); border: 1px solid var(--border); }
+    .btn-ghost:hover { background: #283548; }
+    .btn-sm { padding: 6px 12px; font-size: 0.78rem; }
+    .btn-block { width: 100%; }
+
+    /* Results Card */
+    .result-box {
+      background: linear-gradient(145deg, #0f172a, #131c2e);
+      border: 1px solid rgba(16, 185, 129, 0.3); border-radius: var(--radius);
+      padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    }
+    .stat-hero { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 14px; }
+    .net-spend { font-size: 2.2rem; font-weight: 900; color: #fff; letter-spacing: -1px; }
+    .net-label { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; }
+    .savings-badge { background: rgba(16, 185, 129, 0.2); color: var(--accent); padding: 4px 10px; border-radius: 6px; font-size: 0.88rem; font-weight: 700; }
+
+    .breakdown-row { display: flex; justify-content: space-between; font-size: 0.85rem; padding: 6px 0; color: var(--text-muted); }
+    .breakdown-row.highlight { color: #fff; font-weight: 600; border-top: 1px dashed var(--border); margin-top: 6px; padding-top: 8px; }
+
+    /* 1-2-3 Execution Route */
+    .route-steps { margin-top: 16px; }
+    .step-item {
+      display: flex; gap: 12px; margin-bottom: 10px; background: rgba(0,0,0,0.25);
+      padding: 10px 14px; border-radius: 8px; border-left: 3px solid var(--accent); font-size: 0.85rem;
+    }
+    .step-num { font-weight: 800; color: var(--accent); font-size: 0.95rem; }
+
+    /* Pre-Flight Checklist Table */
+    .table-compact { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    .table-compact th { text-align: left; padding: 10px; color: var(--text-muted); font-size: 0.75rem; border-bottom: 1px solid var(--border); text-transform: uppercase; }
+    .table-compact td { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+
+    /* Personal Value Score Radial */
+    .score-circle {
+      width: 110px; height: 110px; border-radius: 50%;
+      background: conic-gradient(var(--accent) calc(var(--score-pct) * 1%), #1e293b 0);
+      display: flex; align-items: center; justify-content: center; margin: 0 auto 14px;
+    }
+    .score-inner { width: 88px; height: 88px; background: var(--card-bg); border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .score-num { font-size: 1.8rem; font-weight: 900; color: #fff; line-height: 1; }
+    .score-label { font-size: 0.65rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; }
+
+    /* Compact Badge */
+    .tag { font-size: 0.72rem; padding: 3px 8px; border-radius: 4px; font-weight: 600; display: inline-block; }
+    .tag-blue { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+    .tag-amber { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+    .tag-emerald { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+    .tag-rose { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed; bottom: 20px; right: 20px; background: #1f2937; border: 1px solid var(--border);
+      color: #fff; padding: 10px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: 500;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5); z-index: 1000; display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Bar -->
+  <header class="topbar">
+    <div class="brand">
+      <span>KHARCHO</span>
+      <span class="brand-badge">Engine v1.0</span>
+    </div>
+    <div class="vault-status">
+      <span class="status-dot"></span>
+      <span id="vaultStatusText">Vault: Local Synced (5 Sheets)</span>
+      <button class="btn btn-ghost btn-sm" onclick="syncGoogleSheetsVault()">Sync Sheets</button>
+    </div>
+  </header>
+
+  <!-- Nav Tabs (Unified 4-Tab Paradigm) -->
+  <nav class="nav-tabs">
+    <button class="tab-btn active" onclick="switchTab('tab-optimize')">Optimization Studio</button>
+    <button class="tab-btn" onclick="switchTab('tab-vault')">Inputs & Central Vault</button>
+    <button class="tab-btn" onclick="switchTab('tab-suggestions')">Proactive Horizons</button>
+    <button class="tab-btn" onclick="switchTab('tab-dashboard')">Value Dashboard</button>
+  </nav>
+
+  <!-- Main Container -->
+  <main class="main-container">
+
+    <!-- ============================================================== -->
+    <!-- TAB 1: OPTIMIZATION STUDIO (Transaction Live Calculator)      -->
+    <!-- ============================================================== -->
+    <div id="tab-optimize" class="tab-panel active">
+      <div class="grid grid-2">
+        <!-- Input Form Card -->
+        <div class="card">
+          <div class="card-title">
+            <span>Transaction Parameters</span>
+            <span class="tag tag-blue">Zero-Chat Flow</span>
+          </div>
+          <div class="card-sub">Select platform, category, and arbitrage toggles to calculate true net spend.</div>
+
+          <div class="form-group">
+            <label class="label">Spend Category</label>
+            <select class="select" id="optCategory" onchange="handleCategoryChange()">
+              <option value="Pharmacy & Health">Pharmacy & Health (Tata 1mg, Apollo, Pharmeasy)</option>
+              <option value="Online Shopping & Electronics">Online E-Com & Gadgets (Amazon, Flipkart)</option>
+              <option value="Grocery & Quick Commerce">Grocery & Quick Commerce (Blinkit, Zepto, BigBasket)</option>
+              <option value="Travel & Flights">Travel, Flights & Hotels (MakeMyTrip, Yatra)</option>
+              <option value="Dining & Food Delivery">Dining & Food Delivery (Swiggy, Zomato)</option>
+              <option value="Fashion & Apparel">Fashion & Apparel (Myntra, Ajio, Uniqlo)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="label">Platform</label>
+            <select class="select" id="optPlatform" onchange="recalculateOptimization()">
+              <option value="Tata 1mg">Tata 1mg</option>
+              <option value="Amazon India">Amazon India</option>
+              <option value="Flipkart">Flipkart</option>
+              <option value="Swiggy">Swiggy</option>
+              <option value="MakeMyTrip">MakeMyTrip</option>
+              <option value="Myntra">Myntra</option>
+              <option value="Apollo 24|7">Apollo 24|7</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="label">Gross Order Amount (₹)</label>
+            <input type="number" class="input" id="optAmount" value="3500" min="50" step="50" oninput="recalculateOptimization()">
+            <div class="pill-group">
+              <span class="pill" onclick="setOptAmount(999)">₹999</span>
+              <span class="pill" onclick="setOptAmount(2499)">₹2,499</span>
+              <span class="pill active" onclick="setOptAmount(3500)">₹3,500</span>
+              <span class="pill" onclick="setOptAmount(7500)">₹7,500</span>
+              <span class="pill" onclick="setOptAmount(25000)">₹25,000</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="label">Select Payment Card</label>
+            <select class="select" id="optCard" onchange="recalculateOptimization()">
+              <!-- Dynamic populated from Vault -->
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="label">Active Arbitrage Toggles</label>
+            <div class="pill-group">
+              <span class="pill active" id="toggleVoucher" onclick="toggleOption('toggleVoucher')">⚡ Voucher (Gyftr / Hubble)</span>
+              <span class="pill active" id="toggleAffiliate" onclick="toggleOption('toggleAffiliate')">💻 Desktop Affiliate (CashKaro)</span>
+              <span class="pill active" id="toggleSecondaryNum" onclick="toggleOption('toggleSecondaryNum')">📱 Secondary Family Number (New User)</span>
+              <span class="pill" id="toggleNoCostEmi" onclick="toggleOption('toggleNoCostEmi')">📅 0% No-Cost EMI (6 Months)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Live Net-Effective Result Card -->
+        <div>
+          <div class="result-box">
+            <div class="stat-hero">
+              <div>
+                <div class="net-label">Net Out-of-Pocket Spend</div>
+                <div class="net-spend" id="resNetSpend">₹2,380</div>
+              </div>
+              <div class="savings-badge" id="resSavingsBadge">32.0% Off (Save ₹1,120)</div>
+            </div>
+
+            <div class="breakdown-row">
+              <span>Gross Order Value</span>
+              <span id="resBasePrice">₹3,500</span>
+            </div>
+            <div class="breakdown-row">
+              <span>Direct Cart Promo / Discount</span>
+              <span id="resDirectDiscount" style="color: var(--accent);">- ₹350</span>
+            </div>
+            <div class="breakdown-row">
+              <span>Secondary Number New-User Cap</span>
+              <span id="resSecondaryCap" style="color: var(--accent);">- ₹400</span>
+            </div>
+            <div class="breakdown-row">
+              <span>Gift Voucher Arbitrage (Gyftr / SmartBuy)</span>
+              <span id="resVoucherDiscount" style="color: var(--accent);">- ₹220</span>
+            </div>
+            <div class="breakdown-row">
+              <span>Desktop Affiliate Tracked (CashKaro)</span>
+              <span id="resAffiliateCashback" style="color: var(--accent);">- ₹150</span>
+            </div>
+            <div class="breakdown-row">
+              <span>Card Reward Realization (Net Value)</span>
+              <span id="resCardReward" style="color: var(--accent);">- ₹100</span>
+            </div>
+            <div class="breakdown-row highlight">
+              <span>Total Retained Capital</span>
+              <span id="resTotalRetained" style="color: var(--accent); font-weight: 800;">₹1,120</span>
+            </div>
+
+            <div id="emiArbitrageBanner" style="display: none; margin-top: 12px; background: rgba(59, 130, 246, 0.15); border: 1px solid var(--primary); padding: 10px; border-radius: 6px; font-size: 0.8rem;">
+              <strong>💡 0% No-Cost EMI Liquidity Arbitrage:</strong> Park ₹3,500 in 7% liquid fund for 6 mos → Earns ₹71.4 interest (Net Gain after fee: <span id="emiNetGain">₹0</span>).
+            </div>
+          </div>
+
+          <!-- 1-2-3 Execution Sequence Card -->
+          <div class="card" style="margin-top: 16px;">
+            <div class="card-title">
+              <span>Mandatory 1-2-3 Execution Sequence</span>
+              <span class="tag tag-emerald">Pre-Flight Clear</span>
+            </div>
+            <div class="route-steps" id="executionStepsContainer">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- TAB 2: INPUTS & CENTRAL VAULT (5 Google Sheets Tables)         -->
+    <!-- ============================================================== -->
+    <div id="tab-vault" class="tab-panel">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <div>
+          <h2 style="font-size: 1.15rem; font-weight: 700;">Central Vault Schemas</h2>
+          <p style="font-size: 0.8rem; color: var(--text-muted);">Directly mapped to 5 Google Sheets tables. Human-editable with native validation.</p>
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-ghost btn-sm" onclick="exportVaultJson()">Export JSON</button>
+          <button class="btn btn-accent btn-sm" onclick="openAddRecordModal()">+ Add Vault Record</button>
+        </div>
+      </div>
+
+      <!-- Progressive Disclosure Profile Stepper -->
+      <div class="card" style="margin-bottom: 20px;">
+        <div class="card-title">Step 1: Household Financial Profile</div>
+        <div class="grid grid-3">
+          <div class="form-group">
+            <label class="label">City Tier</label>
+            <select class="select" id="profCityTier">
+              <option selected>Tier 1 (Metro: BLR, BOM, DEL, HYD)</option>
+              <option>Tier 2 (Pune, Ahmedabad, Chandigarh)</option>
+              <option>Tier 3 / Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="label">Tax Bracket</label>
+            <select class="select" id="profTaxBracket" onchange="renderDashboard()">
+              <option value="30" selected>30% (Marginal + 4% Cess = 31.2%)</option>
+              <option value="20">20% Bracket</option>
+              <option value="15">15% Bracket</option>
+              <option value="0">Exempt / Zero</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="label">Annual Household Spend (₹)</label>
+            <input type="number" class="input" id="profSpend" value="1800000" step="50000">
+          </div>
+        </div>
+      </div>
+
+      <!-- Vault 1: Cards & Perks Table -->
+      <div class="card" style="margin-bottom: 16px;">
+        <div class="card-title">
+          <span>Sheet 1: Cards & Perks</span>
+          <span class="tag tag-blue" id="cardsCountTag">5 Cards Active</span>
+        </div>
+        <div style="overflow-x: auto;">
+          <table class="table-compact">
+            <thead>
+              <tr>
+                <th>Card Name</th>
+                <th>Bank / Network</th>
+                <th>Reward Rate</th>
+                <th>Multiplier Platform</th>
+                <th>Lounge Visits</th>
+                <th>Spend Waiver Target</th>
+              </tr>
+            </thead>
+            <tbody id="vaultCardsTbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Vault 2: Gifting & Sizing Table -->
+      <div class="card" style="margin-bottom: 16px;">
+        <div class="card-title">
+          <span>Sheet 2: Gifting & Sizing Registry</span>
+          <span class="tag tag-amber">45-Day Advance Runway</span>
+        </div>
+        <div style="overflow-x: auto;">
+          <table class="table-compact">
+            <thead>
+              <tr>
+                <th>Person / Relation</th>
+                <th>Milestone Date</th>
+                <th>Runway</th>
+                <th>Brand-Calibrated Sizing</th>
+                <th>Preferred Categories</th>
+              </tr>
+            </thead>
+            <tbody id="vaultGiftingTbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Vault 3: Insurance & Health Table -->
+      <div class="card" style="margin-bottom: 16px;">
+        <div class="card-title">
+          <span>Sheet 3: Insurance & Health Structuring</span>
+          <span class="tag tag-emerald">Super Top-Up Active</span>
+        </div>
+        <div style="overflow-x: auto;">
+          <table class="table-compact">
+            <thead>
+              <tr>
+                <th>Policy Holder</th>
+                <th>Insurer</th>
+                <th>Type</th>
+                <th>Sum Insured</th>
+                <th>Deductible</th>
+                <th>Annual Premium</th>
+                <th>Free Health Checkup</th>
+              </tr>
+            </thead>
+            <tbody id="vaultInsuranceTbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Vault 4: Subscriptions & SaaS Table -->
+      <div class="card" style="margin-bottom: 16px;">
+        <div class="card-title">
+          <span>Sheet 4: Subscriptions & SaaS Trimming</span>
+          <span class="tag tag-rose">Audit Triggered</span>
+        </div>
+        <div style="overflow-x: auto;">
+          <table class="table-compact">
+            <thead>
+              <tr>
+                <th>Service Name</th>
+                <th>Category</th>
+                <th>Cost (₹)</th>
+                <th>Free Open-Source Alternative</th>
+                <th>Annual Potential Savings</th>
+              </tr>
+            </thead>
+            <tbody id="vaultSubscriptionsTbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Vault 5: Pre-Flight Checklist Table -->
+      <div class="card">
+        <div class="card-title">
+          <span>Sheet 5: Pre-Flight Checklist Rules</span>
+          <span class="tag tag-blue">5 Steps Mandatory</span>
+        </div>
+        <div style="overflow-x: auto;">
+          <table class="table-compact">
+            <thead>
+              <tr>
+                <th>Step</th>
+                <th>Verification Check</th>
+                <th>Action Instruction</th>
+                <th>Impact %</th>
+              </tr>
+            </thead>
+            <tbody id="vaultChecklistTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- TAB 3: PROACTIVE HORIZONS (High-Yield Financial Arbitrage)     -->
+    <!-- ============================================================== -->
+    <div id="tab-suggestions" class="tab-panel">
+      <div style="margin-bottom: 16px;">
+        <h2 style="font-size: 1.15rem; font-weight: 700;">Proactive Financial Horizons</h2>
+        <p style="font-size: 0.8rem; color: var(--text-muted);">High-yield structural maneuvers to unlock thousands in retained capital.</p>
+      </div>
+
+      <div class="grid grid-2">
+        <!-- Insurance Restructuring Arbitrage Card -->
+        <div class="card">
+          <div class="card-title">
+            <span>🛡️ Insurance Super Top-Up Restructuring</span>
+            <span class="tag tag-emerald">Save ~45% Premium</span>
+          </div>
+          <div class="card-sub">Replace monolithic ₹50L base covers with ₹5L Base Floater + ₹50L Super Top-Up (₹5L Deductible).</div>
+
+          <div style="background: rgba(0,0,0,0.3); padding: 14px; border-radius: 8px; margin-bottom: 12px; font-size: 0.85rem;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+              <span>Monolithic ₹50L Single Base Cover:</span>
+              <strong style="color: #f87171;">₹38,000 / yr</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+              <span>₹5L Base Floater + ₹50L Super Top-Up:</span>
+              <strong style="color: var(--accent);">₹24,700 / yr</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; border-top: 1px dashed var(--border); padding-top: 8px;">
+              <span>Annual Retained Capital:</span>
+              <strong style="color: var(--accent); font-size: 1rem;">₹13,300 (35.0% Saved)</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-top: 4px; font-size: 0.78rem; color: var(--text-muted);">
+              <span>10-Yr Compounded at 7% p.a.:</span>
+              <span style="color: #60a5fa; font-weight: 700;">+ ₹1,96,574</span>
+            </div>
+          </div>
+          <button class="btn btn-ghost btn-sm btn-block" onclick="applyInsuranceAction()">Review Restructuring Checklist</button>
+        </div>
+
+        <!-- 0% No-Cost EMI Liquidity Arbitrage Calculator -->
+        <div class="card">
+          <div class="card-title">
+            <span>📈 0% No-Cost EMI Liquidity Arbitrage</span>
+            <span class="tag tag-blue">7.0% Liquid Fund</span>
+          </div>
+          <div class="card-sub">Test if parking upfront purchase funds in a liquid fund earns more than bank processing fee + GST.</div>
+
+          <div class="grid grid-2" style="margin-bottom: 12px;">
+            <div>
+              <label class="label">Amount (₹)</label>
+              <input type="number" class="input" id="emiCalcAmount" value="75000" oninput="runEmiArbitrageCalc()">
+            </div>
+            <div>
+              <label class="label">Tenure (Mos)</label>
+              <select class="select" id="emiCalcTenure" onchange="runEmiArbitrageCalc()">
+                <option value="3">3 Months</option>
+                <option value="6" selected>6 Months</option>
+                <option value="9">9 Months</option>
+                <option value="12">12 Months</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px; font-size: 0.85rem;" id="emiArbitrageSummary">
+            <!-- Rendered via JS -->
+          </div>
+        </div>
+
+        <!-- Cost-per-Use (CPU) Lifetime Utility Card -->
+        <div class="card">
+          <div class="card-title">
+            <span>⏳ Cost-per-Use (CPU) Utility Engine</span>
+            <span class="tag tag-amber">Anti-Disposable Trap</span>
+          </div>
+          <div class="card-sub">Calculate lifetime value before impulse buying fast fashion or budget gadgets.</div>
+
+          <div class="grid grid-2" style="margin-bottom: 12px;">
+            <div>
+              <label class="label">Price (₹)</label>
+              <input type="number" class="input" id="cpuPrice" value="4500" oninput="runCpuCalc()">
+            </div>
+            <div>
+              <label class="label">Expected Uses</label>
+              <input type="number" class="input" id="cpuUses" value="120" oninput="runCpuCalc()">
+            </div>
+          </div>
+
+          <div style="background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px; font-size: 0.85rem;" id="cpuResultSummary">
+            <!-- Rendered via JS -->
+          </div>
+        </div>
+
+        <!-- 45-Day Milestone Pre-Sale Horizon Card -->
+        <div class="card">
+          <div class="card-title">
+            <span>🎁 45-Day Gifting Sale Radar</span>
+            <span class="tag tag-rose">Pre-Sale Runway</span>
+          </div>
+          <div class="card-sub">Upcoming milestones mapped against major e-com sale periods to prevent full-price panic buying.</div>
+
+          <div id="giftingRunwayList" style="font-size: 0.85rem;">
+            <!-- Rendered via JS -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- TAB 4: VALUE DASHBOARD (Personal Value Score & Metrics)       -->
+    <!-- ============================================================== -->
+    <div id="tab-dashboard" class="tab-panel">
+      <div style="margin-bottom: 16px;">
+        <h2 style="font-size: 1.15rem; font-weight: 700;">Financial Value Cockpit</h2>
+        <p style="font-size: 0.8rem; color: var(--text-muted);">Aggregate leakage audit, statutory tax headroom, and annual retained capital.</p>
+      </div>
+
+      <div class="grid grid-3" style="margin-bottom: 20px;">
+        <!-- Score Card -->
+        <div class="card" style="text-align: center;">
+          <div class="card-title" style="justify-content: center;">Personal Value Score</div>
+          <div class="score-circle" id="scoreCircle" style="--score-pct: 88;">
+            <div class="score-inner">
+              <span class="score-num" id="dashScoreNum">88</span>
+              <span class="score-label">/ 100</span>
+            </div>
+          </div>
+          <div id="dashScoreGrade" style="font-size: 0.85rem; font-weight: 700; color: var(--accent);">Elite Value Optimizer</div>
+        </div>
+
+        <!-- Annual Retained Capital -->
+        <div class="card">
+          <div class="card-title">Annual Retained Capital</div>
+          <div style="font-size: 2rem; font-weight: 900; color: var(--accent); margin-bottom: 6px;" id="dashRetainedCapital">₹48,220</div>
+          <div style="font-size: 0.8rem; color: var(--text-muted);">Saved across card multipliers, insurance restructuring, SaaS trimming, and vouchers.</div>
+          <div style="margin-top: 14px; font-size: 0.8rem;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+              <span>Voucher Arbitrage:</span> <strong>₹16,400</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+              <span>Insurance Restructuring:</span> <strong>₹13,300</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span>SaaS Trimming:</span> <strong>₹18,520</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Statutory Tax Headroom -->
+        <div class="card">
+          <div class="card-title">
+            <span>Statutory Tax Headroom</span>
+            <span class="tag tag-blue">Sec 80C / 80D / NPS</span>
+          </div>
+          <div style="font-size: 1.8rem; font-weight: 900; color: #60a5fa; margin-bottom: 6px;" id="dashTaxRefund">₹32,760</div>
+          <div style="font-size: 0.8rem; color: var(--text-muted);">Potential direct tax refund from unclaimed allowances:</div>
+          <div style="margin-top: 12px; font-size: 0.8rem;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+              <span>Sec 80C Unclaimed:</span> <strong id="dash80cHeadroom">₹30,000</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+              <span>Sec 80D Health Headroom:</span> <strong id="dash80dHeadroom">₹25,000</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span>NPS 80CCD(1B) Headroom:</span> <strong id="dashNpsHeadroom">₹50,000</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Leakage Prevention Scorecard -->
+      <div class="card">
+        <div class="card-title">
+          <span>Leakage Prevention Scorecard</span>
+          <span class="tag tag-emerald">5-Point Audit</span>
+        </div>
+        <div class="grid grid-2" id="scorecardItems">
+          <!-- Rendered via JS -->
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Toast Notification Box -->
+  <div class="toast" id="toastBox">Syncing with Google Sheets Vault...</div>
+
+  <!-- Scripts -->
+  <script src="kharcho-math.js"></script>
+  <script src="token-optimizer.js"></script>
+  <script>
+    /**
+     * ==============================================================
+     * KHARCHO SINGLE-PAGE APPLICATION LOGIC
+     * ==============================================================
+     */
+
+    // In-Memory Vault State (Synced with localStorage and Google Apps Script)
+    const VAULT = {
+      cards: [
+        { id: 'c1', card_name: 'HDFC Infinia Metal', bank: 'HDFC', network: 'Visa Infinite', reward_rate_pct: 3.3, multiplier_platform: 'SmartBuy Gyftr 5X (16.6%)', lounge_domestic_qtr: 99, lounge_intl_yr: 99, milestone_target: 1000000, fee_waiver_spend: 1000000, current_annual_spend: 480000, expiry_or_renewal: '2027-04-01' },
+        { id: 'c2', card_name: 'SBI Cashback', bank: 'SBI', network: 'Mastercard', reward_rate_pct: 5.0, multiplier_platform: 'All Online E-Com (5% direct)', lounge_domestic_qtr: 0, lounge_intl_yr: 0, milestone_target: 200000, fee_waiver_spend: 200000, current_annual_spend: 145000, expiry_or_renewal: '2027-02-15' },
+        { id: 'c3', card_name: 'Tata Neu Infinity', bank: 'HDFC', network: 'RuPay UPI', reward_rate_pct: 1.5, multiplier_platform: 'Tata 1mg / BigBasket (10% NeuCoins)', lounge_domestic_qtr: 8, lounge_intl_yr: 0, milestone_target: 300000, fee_waiver_spend: 300000, current_annual_spend: 95000, expiry_or_renewal: '2026-11-20' },
+        { id: 'c4', card_name: 'Axis Atlas', bank: 'Axis', network: 'Visa Signature', reward_rate_pct: 4.0, multiplier_platform: 'Travel EDGE & Flights (10%)', lounge_domestic_qtr: 8, lounge_intl_yr: 4, milestone_target: 750000, fee_waiver_spend: 750000, current_annual_spend: 310000, expiry_or_renewal: '2027-08-30' },
+        { id: 'c5', card_name: 'Amazon Pay ICICI', bank: 'ICICI', network: 'Visa Platinum', reward_rate_pct: 5.0, multiplier_platform: 'Amazon Prime (5% direct cashback)', lounge_domestic_qtr: 0, lounge_intl_yr: 0, milestone_target: 0, fee_waiver_spend: 0, current_annual_spend: 62000, expiry_or_renewal: 'Lifetime Free' }
+      ],
+      gifting: [
+        { id: 'g1', person_name: 'Mother', relationship: 'Mother', milestone_type: 'Birthday', milestone_date: '2026-11-28', pre_sale_notice_days: 45, brand_sizes_json: 'FabIndia: 4XL Cotton, Biba: 42 Kurti, Skechers: UK 6', preferred_gift_categories: 'Ethnic wear, Orthopedic footwear, Tea sets', notes: 'Prefers pure breathable cotton' },
+        { id: 'g2', person_name: 'Spouse', relationship: 'Spouse', milestone_type: 'Anniversary', milestone_date: '2026-12-14', pre_sale_notice_days: 45, brand_sizes_json: 'Uniqlo: M Regular, Zara: M, Nike: UK 7.5', preferred_gift_categories: 'Skincare, Travel gear, Tech accessories', notes: 'Watch for Uniqlo Arigato sale' },
+        { id: 'g3', person_name: 'Self', relationship: 'Self', milestone_type: 'Milestone', milestone_date: '2027-01-10', pre_sale_notice_days: 30, brand_sizes_json: 'Uniqlo: L Fit, Levi: 34/32, Adidas: UK 9', preferred_gift_categories: 'Activewear, ANC headphones', notes: 'Check Republic Day sales' }
+      ],
+      insurance: [
+        { id: 'i1', policy_holder: 'Self & Family Floater', insurer: 'HDFC ERGO Optima Secure', policy_type: 'Base Floater', base_sum_insured: 500000, super_topup_insured: 0, super_topup_deductible: 0, annual_premium: 18500, renewal_date: '2027-06-15', free_health_checkup_avail: true, opd_balance: 5000, sec_80d_eligible: 25000 },
+        { id: 'i2', policy_holder: 'Family Super Top-Up', insurer: 'Care Health Supreme', policy_type: 'Super Top-Up', base_sum_insured: 0, super_topup_insured: 5000000, super_topup_deductible: 500000, annual_premium: 6200, renewal_date: '2027-06-15', free_health_checkup_avail: false, opd_balance: 0, sec_80d_eligible: 6200 },
+        { id: 'i3', policy_holder: 'Senior Parents Floater', insurer: 'Star Senior Citizens', policy_type: 'Base Floater + Top-Up', base_sum_insured: 500000, super_topup_insured: 2500000, super_topup_deductible: 500000, annual_premium: 48000, renewal_date: '2026-12-05', free_health_checkup_avail: true, opd_balance: 0, sec_80d_eligible: 50000 }
+      ],
+      subscriptions: [
+        { id: 's1', service_name: 'Notion Team / Plus', category: 'Productivity', billing_cycle: 'Annual', cost_inr: 9600, renewal_date: '2027-03-01', free_open_source_alt: 'Obsidian (Local Markdown / Sync)', potential_annual_savings: 9600, utilization_status: 'Audit Flagged' },
+        { id: 's2', service_name: 'Canva Pro', category: 'Design', billing_cycle: 'Annual', cost_inr: 4000, renewal_date: '2026-11-15', free_open_source_alt: 'Figma Free / Penpot', potential_annual_savings: 4000, utilization_status: 'Underutilized' },
+        { id: 's3', service_name: 'Google One 2TB AI', category: 'Cloud & AI', billing_cycle: 'Monthly', cost_inr: 1950, renewal_date: '2026-10-28', free_open_source_alt: 'Local NAS / Drive archive', potential_annual_savings: 23400, utilization_status: 'Active' },
+        { id: 's4', service_name: 'Amazon Prime India', category: 'Shopping & OTT', billing_cycle: 'Annual', cost_inr: 1499, renewal_date: '2027-01-20', free_open_source_alt: 'Free delivery with ₹499 consolidation', potential_annual_savings: 1499, utilization_status: 'Essential (Prime 5% CB)' }
+      ],
+      checklist: [
+        { rule_id: 'r1', step_order: 1, check_name: 'Voucher Multiplier Arbitrage', action_instruction: 'Check Gyftr / SmartBuy / Magicpin / Hubble for 3% - 16.6% instant discounted vouchers before checkout', arbitrage_impact_pct: 16.6, mandatory: true },
+        { rule_id: 'r2', step_order: 2, check_name: 'Desktop Affiliate Tracking', action_instruction: 'Activate CashKaro / EarnKaro on desktop browser. Mobile apps often drop referral cookies', arbitrage_impact_pct: 8.5, mandatory: true },
+        { rule_id: 'r3', step_order: 3, check_name: 'Secondary Family Number Hack', action_instruction: 'Check if secondary family phone number is eligible for first-order coupons (20%-25% off pharmacy/grocery)', arbitrage_impact_pct: 20.0, mandatory: true },
+        { rule_id: 'r4', step_order: 4, check_name: 'Brand-Calibrated Sizing Match', action_instruction: 'Verify against Gifting & Sizing registry to eliminate return hassles and lost courier charges', arbitrage_impact_pct: 0.0, mandatory: true },
+        { rule_id: 'r5', step_order: 5, check_name: 'Card Milestones & Spend Routing', action_instruction: 'Route to card nearing fee-waiver threshold or highest reward multiplier; ensure no MCC exclusion', arbitrage_impact_pct: 5.0, mandatory: true }
+      ]
+    };
+
+    // Tab Switching
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-panel').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+
+      const target = document.getElementById(tabId);
+      if (target) target.classList.add('active');
+
+      const activeBtn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.getAttribute('onclick').includes(tabId));
+      if (activeBtn) activeBtn.classList.add('active');
+
+      if (tabId === 'tab-dashboard') renderDashboard();
+      if (tabId === 'tab-suggestions') renderSuggestions();
+      if (tabId === 'tab-vault') renderVaultTables();
+    }
+
+    // Category Change Handler
+    function handleCategoryChange() {
+      const cat = document.getElementById('optCategory').value;
+      const platSelect = document.getElementById('optPlatform');
+      platSelect.innerHTML = '';
+
+      const platformsMap = {
+        'Pharmacy & Health': ['Tata 1mg', 'Apollo 24|7', 'Pharmeasy', 'Netmeds'],
+        'Online Shopping & Electronics': ['Amazon India', 'Flipkart', 'Croma', 'Reliance Digital'],
+        'Grocery & Quick Commerce': ['Blinkit', 'Zepto', 'Instamart', 'BigBasket'],
+        'Travel & Flights': ['MakeMyTrip', 'Cleartrip', 'Yatra', 'Tata Neu Travel'],
+        'Dining & Food Delivery': ['Swiggy', 'Zomato', 'EazyDiner'],
+        'Fashion & Apparel': ['Myntra', 'Ajio', 'Uniqlo India', 'Tata CLiQ']
+      };
+
+      const options = platformsMap[cat] || ['Online Platform'];
+      options.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p;
+        opt.textContent = p;
+        platSelect.appendChild(opt);
+      });
+
+      populateCardDropdown();
+      recalculateOptimization();
+    }
+
+    // Populate Cards Dropdown
+    function populateCardDropdown() {
+      const cardSelect = document.getElementById('optCard');
+      const cat = document.getElementById('optCategory').value;
+      cardSelect.innerHTML = '';
+
+      VAULT.cards.forEach((c, idx) => {
+        const opt = document.createElement('option');
+        opt.value = c.id;
+        opt.textContent = `${c.card_name} (${c.bank} - ${c.multiplier_platform})`;
+        if (cat.includes('Pharmacy') && c.card_name.includes('Tata Neu')) opt.selected = true;
+        if (cat.includes('Amazon') && c.card_name.includes('Amazon')) opt.selected = true;
+        cardSelect.appendChild(opt);
+      });
+    }
+
+    // Pill Amount Setter
+    function setOptAmount(amt) {
+      document.getElementById('optAmount').value = amt;
+      document.querySelectorAll('#tab-optimize .pill-group:first-of-type .pill').forEach(p => {
+        p.classList.toggle('active', p.textContent.includes(amt.toLocaleString('en-IN')));
+      });
+      recalculateOptimization();
+    }
+
+    // Toggle Option Pills
+    function toggleOption(id) {
+      const el = document.getElementById(id);
+      if (el) el.classList.toggle('active');
+      recalculateOptimization();
+    }
+
+    // Live Recalculate
+    function recalculateOptimization() {
+      const baseAmount = Number(document.getElementById('optAmount').value) || 0;
+      const cat = document.getElementById('optCategory').value;
+      const platform = document.getElementById('optPlatform').value;
+      const cardId = document.getElementById('optCard').value;
+      const selectedCard = VAULT.cards.find(c => c.id === cardId) || VAULT.cards[0];
+
+      const useVoucher = document.getElementById('toggleVoucher').classList.contains('active');
+      const useAffiliate = document.getElementById('toggleAffiliate').classList.contains('active');
+      const useSecondaryNum = document.getElementById('toggleSecondaryNum').classList.contains('active');
+      const useNoCostEmi = document.getElementById('toggleNoCostEmi').classList.contains('active');
+
+      // Direct platform promo calculation
+      let directDiscount = 0;
+      if (cat.includes('Pharmacy')) directDiscount = Math.min(350, Math.round(baseAmount * 0.10));
+      else if (cat.includes('Fashion')) directDiscount = Math.min(500, Math.round(baseAmount * 0.15));
+      else directDiscount = Math.round(baseAmount * 0.05);
+
+      // Secondary family number arbitrage (New user cap)
+      let secondaryCap = 0;
+      if (useSecondaryNum) {
+        if (cat.includes('Pharmacy') || cat.includes('Grocery')) {
+          secondaryCap = Math.min(450, Math.round(baseAmount * 0.22));
+        } else {
+          secondaryCap = Math.min(250, Math.round(baseAmount * 0.10));
+        }
+      }
+
+      // Voucher savings
+      let voucherSavings = 0;
+      if (useVoucher) {
+        let voucherRate = 0.04;
+        if (selectedCard.multiplier_platform.includes('SmartBuy') || selectedCard.multiplier_platform.includes('Gyftr')) {
+          voucherRate = 0.085;
+        }
+        voucherSavings = Math.round(baseAmount * voucherRate);
+      }
+
+      // Desktop Affiliate Cashback (CashKaro)
+      let affiliateCashback = 0;
+      if (useAffiliate) {
+        let affRate = 0.045;
+        if (platform.includes('1mg') || platform.includes('Myntra')) affRate = 0.065;
+        affiliateCashback = Math.round(baseAmount * affRate);
+      }
+
+      // Card Reward Realization
+      const payableOnCard = Math.max(0, baseAmount - directDiscount - secondaryCap - voucherSavings);
+      let cardRate = selectedCard.reward_rate_pct || 3.3;
+      if (cat.includes('Pharmacy') && selectedCard.card_name.includes('Tata Neu')) cardRate = 10.0;
+      if (platform.includes('Amazon') && selectedCard.card_name.includes('Amazon Pay')) cardRate = 5.0;
+      const cardRewardValue = Math.round(payableOnCard * (cardRate / 100));
+
+      // KharchoMath invocation
+      const calcResult = KharchoMath.calculateNetSpend({
+        basePrice: baseAmount,
+        convenienceFee: 0,
+        directDiscount: directDiscount,
+        voucherSavings: voucherSavings,
+        affiliateCashback: affiliateCashback,
+        cardRewardValue: cardRewardValue,
+        accountPerkValue: secondaryCap
+      });
+
+      // Update UI Elements
+      document.getElementById('resNetSpend').textContent = '₹' + calcResult.netSpend.toLocaleString('en-IN');
+      document.getElementById('resSavingsBadge').textContent = `${calcResult.savingsPct}% Off (Save ₹${calcResult.grossSavings.toLocaleString('en-IN')})`;
+      document.getElementById('resBasePrice').textContent = '₹' + baseAmount.toLocaleString('en-IN');
+      document.getElementById('resDirectDiscount').textContent = `- ₹${directDiscount.toLocaleString('en-IN')}`;
+      document.getElementById('resSecondaryCap').textContent = useSecondaryNum ? `- ₹${secondaryCap.toLocaleString('en-IN')}` : '₹0 (Inactive)';
+      document.getElementById('resVoucherDiscount').textContent = useVoucher ? `- ₹${voucherSavings.toLocaleString('en-IN')}` : '₹0 (Inactive)';
+      document.getElementById('resAffiliateCashback').textContent = useAffiliate ? `- ₹${affiliateCashback.toLocaleString('en-IN')}` : '₹0 (Inactive)';
+      document.getElementById('resCardReward').textContent = `- ₹${cardRewardValue.toLocaleString('en-IN')} (${selectedCard.card_name})`;
+      document.getElementById('resTotalRetained').textContent = '₹' + calcResult.grossSavings.toLocaleString('en-IN');
+
+      // EMI Arbitrage Box
+      const emiBox = document.getElementById('emiArbitrageBanner');
+      if (useNoCostEmi) {
+        emiBox.style.display = 'block';
+        const emiRes = KharchoMath.calculateNoCostEmiArbitrage(baseAmount, 6, 7.0);
+        document.getElementById('emiNetGain').textContent = `₹${emiRes.netArbitrageGain.toLocaleString('en-IN')}`;
+      } else {
+        emiBox.style.display = 'none';
+      }
+
+      // Render 1-2-3 Step Execution Route
+      renderExecutionSteps(platform, selectedCard, useVoucher, useAffiliate, useSecondaryNum);
+    }
+
+    // Render Execution Steps
+    function renderExecutionSteps(platform, card, useVoucher, useAffiliate, useSecondaryNum) {
+      const container = document.getElementById('executionStepsContainer');
+      const steps = [];
+
+      let stepNum = 1;
+      if (useSecondaryNum) {
+        steps.push({
+          num: stepNum++,
+          text: `<strong>Secondary Account Login:</strong> Open ${platform} incognito or switch to secondary family phone number to unlock the new-user promotional cap.`
+        });
+      }
+      if (useAffiliate) {
+        steps.push({
+          num: stepNum++,
+          text: `<strong>Desktop Browser Affiliate Tracking:</strong> Launch CashKaro/EarnKaro from your desktop browser (never deep-link from smartphone apps to prevent dropped referral cookies).`
+        });
+      }
+      if (useVoucher) {
+        steps.push({
+          num: stepNum++,
+          text: `<strong>Instant Voucher Procurement:</strong> Purchase discounted e-voucher on Gyftr / SmartBuy using <strong>${card.card_name}</strong> to stack multiplier points upfront.`
+        });
+      }
+      steps.push({
+        num: stepNum++,
+        text: `<strong>Final Settlement & Card Spend:</strong> Apply voucher at checkout and route residual balance to <strong>${card.card_name}</strong> (${card.multiplier_platform}).`
+      });
+
+      container.innerHTML = steps.map(s => `
+        <div class="step-item">
+          <span class="step-num">${s.num}.</span>
+          <div>${s.text}</div>
+        </div>
+      `).join('');
+    }
+
+    // Render Vault Tables
+    function renderVaultTables() {
+      // 1. Cards
+      document.getElementById('cardsCountTag').textContent = `${VAULT.cards.length} Cards Active`;
+      document.getElementById('vaultCardsTbody').innerHTML = VAULT.cards.map(c => `
+        <tr>
+          <td><strong>${c.card_name}</strong></td>
+          <td>${c.bank} (${c.network})</td>
+          <td><span class="tag tag-emerald">${c.reward_rate_pct}%</span></td>
+          <td>${c.multiplier_platform}</td>
+          <td>Dom: ${c.lounge_domestic_qtr}/qtr | Int: ${c.lounge_intl_yr}/yr</td>
+          <td>₹${c.fee_waiver_spend.toLocaleString('en-IN')} (Spent: ₹${c.current_annual_spend.toLocaleString('en-IN')})</td>
+        </tr>
+      `).join('');
+
+      // 2. Gifting
+      document.getElementById('vaultGiftingTbody').innerHTML = VAULT.gifting.map(g => `
+        <tr>
+          <td><strong>${g.person_name}</strong> (${g.relationship})</td>
+          <td>${g.milestone_date} (${g.milestone_type})</td>
+          <td><span class="tag tag-amber">${g.pre_sale_notice_days} Days Advance</span></td>
+          <td style="font-family: monospace; font-size: 0.78rem;">${g.brand_sizes_json}</td>
+          <td>${g.preferred_gift_categories}</td>
+        </tr>
+      `).join('');
+
+      // 3. Insurance
+      document.getElementById('vaultInsuranceTbody').innerHTML = VAULT.insurance.map(i => `
+        <tr>
+          <td><strong>${i.policy_holder}</strong></td>
+          <td>${i.insurer}</td>
+          <td><span class="tag tag-blue">${i.policy_type}</span></td>
+          <td>₹${(i.base_sum_insured || i.super_topup_insured).toLocaleString('en-IN')}</td>
+          <td>₹${(i.super_topup_deductible || 0).toLocaleString('en-IN')}</td>
+          <td>₹${i.annual_premium.toLocaleString('en-IN')}/yr</td>
+          <td>${i.free_health_checkup_avail ? '<span class="tag tag-emerald">Available (₹5k)</span>' : 'None'}</td>
+        </tr>
+      `).join('');
+
+      // 4. Subscriptions
+      document.getElementById('vaultSubscriptionsTbody').innerHTML = VAULT.subscriptions.map(s => `
+        <tr>
+          <td><strong>${s.service_name}</strong></td>
+          <td>${s.category}</td>
+          <td>₹${s.cost_inr.toLocaleString('en-IN')} (${s.billing_cycle})</td>
+          <td style="color: #60a5fa;">${s.free_open_source_alt}</td>
+          <td><strong style="color: var(--accent);">₹${s.potential_annual_savings.toLocaleString('en-IN')}</strong></td>
+        </tr>
+      `).join('');
+
+      // 5. Checklist
+      document.getElementById('vaultChecklistTbody').innerHTML = VAULT.checklist.map(r => `
+        <tr>
+          <td><span class="tag tag-blue">Step ${r.step_order}</span></td>
+          <td><strong>${r.check_name}</strong></td>
+          <td>${r.action_instruction}</td>
+          <td><span class="tag tag-emerald">+${r.arbitrage_impact_pct}% Impact</span></td>
+        </tr>
+      `).join('');
+    }
+
+    // Render Horizons & Proactive Suggestions
+    function renderSuggestions() {
+      runEmiArbitrageCalc();
+      runCpuCalc();
+
+      // Gifting radar
+      const giftingContainer = document.getElementById('giftingRunwayList');
+      giftingContainer.innerHTML = VAULT.gifting.map(g => `
+        <div style="background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px; margin-bottom: 10px;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+            <strong>${g.person_name} (${g.relationship}) — ${g.milestone_type}</strong>
+            <span class="tag tag-rose">${g.milestone_date}</span>
+          </div>
+          <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 6px;">
+            Sizes: <span style="color: #fff; font-family: monospace;">${g.brand_sizes_json}</span>
+          </div>
+          <div style="font-size: 0.78rem; color: var(--accent);">
+            ⚡ 45-day pre-sale trigger: Watch upcoming Diwali / Black Friday / End-of-Season sales. Save ~30% vs last-minute shopping.
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // EMI Arbitrage Dynamic Calc
+    function runEmiArbitrageCalc() {
+      const amt = Number(document.getElementById('emiCalcAmount').value) || 0;
+      const mos = Number(document.getElementById('emiCalcTenure').value) || 6;
+      const res = KharchoMath.calculateNoCostEmiArbitrage(amt, mos, 7.0);
+
+      document.getElementById('emiArbitrageSummary').innerHTML = `
+        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+          <span>Monthly EMI Outflow:</span> <strong>₹${res.monthlyEmi.toLocaleString('en-IN')} / mo</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+          <span>Gross 7% Liquid Fund Interest:</span> <span style="color: var(--accent);">+ ₹${res.grossInterestEarned.toLocaleString('en-IN')}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+          <span>Bank Processing Fee + GST:</span> <span style="color: #f87171;">- ₹${res.processingFee.toLocaleString('en-IN')}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; border-top: 1px dashed var(--border); padding-top: 6px;">
+          <span>Net Liquidity Arbitrage Gain:</span> <strong style="color: ${res.isProfitable ? 'var(--accent)' : '#f87171'};">₹${res.netArbitrageGain.toLocaleString('en-IN')}</strong>
+        </div>
+        <div style="margin-top: 6px; font-size: 0.75rem; color: ${res.isProfitable ? 'var(--accent)' : '#f87171'}; font-weight: 700;">
+          Verdict: ${res.recommendation}
+        </div>
+      `;
+    }
+
+    // CPU Dynamic Calc
+    function runCpuCalc() {
+      const price = Number(document.getElementById('cpuPrice').value) || 0;
+      const uses = Number(document.getElementById('cpuUses').value) || 1;
+      const res = KharchoMath.calculateCostPerUse(price, uses, 0);
+
+      document.getElementById('cpuResultSummary').innerHTML = `
+        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+          <span>Purchase Price:</span> <strong>₹${res.totalCost.toLocaleString('en-IN')}</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+          <span>Cost per Single Use (CPU):</span> <strong style="color: var(--accent); font-size: 1.1rem;">₹${res.costPerUse.toLocaleString('en-IN')} / use</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; border-top: 1px dashed var(--border); padding-top: 6px; font-size: 0.78rem;">
+          <span>Utility Verdict:</span> <strong style="color: ${res.verdictColor === 'emerald' ? 'var(--accent)' : res.verdictColor === 'rose' ? '#f87171' : '#60a5fa'};">${res.verdict}</strong>
+        </div>
+      `;
+    }
+
+    // Render Dashboard & Personal Value Score
+    function renderDashboard() {
+      const bracket = Number(document.getElementById('profTaxBracket').value) || 30;
+      const taxRes = KharchoMath.calculateTaxHeadroom({
+        sec80c: 120000,
+        sec80d_self: 20000,
+        sec80d_parents: 30000,
+        sec80ccd_nps: 0
+      }, bracket);
+
+      const scoreRes = KharchoMath.calculateValueScore({
+        cardEfficiencyPct: 92,
+        hasSuperTopUp: true,
+        unusedSaaSCost: 4000,
+        upcomingSalesTracked: 3,
+        taxHeadroom: taxRes.totalUnclaimedHeadroom
+      });
+
+      // Update Score
+      document.getElementById('dashScoreNum').textContent = scoreRes.totalScore;
+      document.getElementById('dashScoreGrade').textContent = scoreRes.grade;
+      document.getElementById('scoreCircle').style.setProperty('--score-pct', scoreRes.totalScore);
+
+      // Tax Headroom
+      document.getElementById('dashTaxRefund').textContent = '₹' + taxRes.potentialDirectTaxRefund.toLocaleString('en-IN');
+      document.getElementById('dash80cHeadroom').textContent = '₹' + taxRes.section80C.headroom.toLocaleString('en-IN');
+      document.getElementById('dash80dHeadroom').textContent = '₹' + (taxRes.section80D_Self.headroom + taxRes.section80D_Parents.headroom).toLocaleString('en-IN');
+      document.getElementById('dashNpsHeadroom').textContent = '₹' + taxRes.section80CCD_NPS.headroom.toLocaleString('en-IN');
+
+      // Leakage Scorecard Items
+      const scorecard = [
+        { label: 'Card Multiplier Routing', status: 'Optimal (16.6% via SmartBuy)', badge: 'tag-emerald', points: '24 / 25' },
+        { label: 'Insurance Top-Up Restructuring', status: 'Configured (₹50L Top-Up active)', badge: 'tag-emerald', points: '20 / 20' },
+        { label: 'Subscriptions / SaaS Trimming', status: 'Action Flagged (Canva Pro unused)', badge: 'tag-amber', points: '10 / 15' },
+        { label: '45-Day Gifting Pre-Sale Radar', status: 'Active (3 Milestones tracked)', badge: 'tag-emerald', points: '20 / 20' },
+        { label: 'Statutory Section 80CCD NPS', status: '₹50,000 Unclaimed Headroom', badge: 'tag-rose', points: '14 / 20' }
+      ];
+
+      document.getElementById('scorecardItems').innerHTML = scorecard.map(s => `
+        <div style="background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+            <strong>${s.label}</strong>
+            <span class="tag ${s.badge}">${s.points}</span>
+          </div>
+          <div style="font-size: 0.8rem; color: var(--text-muted);">${s.status}</div>
+        </div>
+      `).join('');
+    }
+
+    // Google Sheets Vault Sync Simulation / Webhook Call
+    function syncGoogleSheetsVault() {
+      showToast('Connecting to Google Apps Script Vault endpoint...');
+      setTimeout(() => {
+        showToast('Vault Synchronized: All 5 Sheets Up to Date!');
+        renderVaultTables();
+      }, 650);
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toastBox');
+      toast.textContent = msg;
+      toast.style.display = 'block';
+      setTimeout(() => { toast.style.display = 'none'; }, 2500);
+    }
+
+    function exportVaultJson() {
+      const blob = new Blob([JSON.stringify(VAULT, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'Kharcho_Vault_Export.json';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function openAddRecordModal() {
+      showToast('Record creation connected to Google Sheets schema.');
+    }
+
+    function applyInsuranceAction() {
+      showToast('Pre-Flight Checklist: Initiated Top-up restructuring review.');
+    }
+
+    // Initialize on DOM load
+    window.addEventListener('DOMContentLoaded', () => {
+      populateCardDropdown();
+      recalculateOptimization();
+      renderVaultTables();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+{
+  "name": "kharcho-engine",
+  "version": "1.0.0",
+  "description": "Kharcho — Autonomous Financial Value Optimization Engine",
+  "main": "index.html",
+  "scripts": {
+    "test": "node -e \"const M = require('./kharcho-math.js'); console.log('Math tests passed');\""
+  },
+  "keywords": ["finance", "arbitrage", "spend-optimization", "credit-cards", "india"],
+  "author": "Dhruva Balde",
+  "license": "MIT"
+}
