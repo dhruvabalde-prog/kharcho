@@ -1,4 +1,10 @@
-# Kharcho Engine — Architecture & Implementation Guide
+# Kharcho Engine — Autonomous Financial Value Optimization Engine
+
+[![Production](https://img.shields.io/badge/Vercel-Live_Deployment-black?style=flat&logo=vercel)](https://kharcho-nine.vercel.app)
+[![GitHub](https://img.shields.io/badge/GitHub-Repository-blue?style=flat&logo=github)](https://github.com/dhruvabalde-prog/kharcho)
+
+- **Live URL**: [https://kharcho-nine.vercel.app](https://kharcho-nine.vercel.app)
+- **GitHub Repository**: [https://github.com/dhruvabalde-prog/kharcho](https://github.com/dhruvabalde-prog/kharcho)
 
 Kharcho is an autonomous financial value optimization engine designed to maximize net retained capital and minimize out-of-pocket spend across household, personal, and business transactions.
 
